@@ -47,11 +47,15 @@ class DeviceActivity : ComponentActivity() {
 
         setContent {
             if (isConnected) {
-                startActivity(Intent(this@DeviceActivity, DeviceActivity::class.java))
+                startActivity(Intent(this@DeviceActivity, ActionsActivity::class.java))
                 finish()
             } else {
                 DeviceScreen(deviceName, deviceAddress, deviceRSSI) {
-                    connectToDevice()
+                    connectToDevice {
+                        // Une fois connecté, changer l'état de la connexion et rediriger vers ActionsActivity
+                        isConnected = true
+                        startActivity(Intent(this@DeviceActivity, ActionsActivity::class.java))
+                    }
                 }
             }
         }
@@ -59,14 +63,14 @@ class DeviceActivity : ComponentActivity() {
 
 
     @SuppressLint("MissingPermission")
-    private fun connectToDevice() {
+    private fun connectToDevice(onConnected: () -> Unit) {
         bluetoothGatt = bluetoothDevice.connectGatt(this, false, object : BluetoothGattCallback() {
             override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
                 when (newState) {
                     BluetoothProfile.STATE_CONNECTED -> {
-                        // Lorsque la connexion est établie, démarrer ActionsActivity
-                        val intent = Intent(this@DeviceActivity, ActionsActivity::class.java)
-                        startActivity(intent)
+                        Log.i("BluetoothGatt", "Connected to GATT server.")
+                        // Lorsque la connexion est établie, appeler la fonction onConnected
+                        onConnected()
                     }
 
                     BluetoothProfile.STATE_DISCONNECTED -> {
@@ -84,6 +88,7 @@ class DeviceActivity : ComponentActivity() {
             }
         })
     }
+
 
     @Composable
     fun DeviceScreen(
@@ -110,8 +115,15 @@ class DeviceActivity : ComponentActivity() {
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = "Device RSSI: $deviceRSSI", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = onConnectClick) {
-                Text("Se connecter")
+            Button(
+                onClick = {
+                    // Lorsque le bouton est cliqué, appeler la fonction pour se connecter
+                    connecting = true
+                    onConnectClick()
+                },
+                enabled = !connecting // Désactiver le bouton pendant la connexion
+            ) {
+                Text(if (connecting) "Connexion en cours..." else "Se connecter")
             }
         }
     }

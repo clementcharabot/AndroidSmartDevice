@@ -62,7 +62,8 @@ class ScanActivity : ComponentActivity() {
                     scanningState = !scanningState
                     scanLeDeviceWithPermission(scanningState)
                 },
-            ) {}
+                onDeviceClick = {} // Ajout d'une action vide pour onDeviceClick
+            )
 
             Surface(
                 modifier = Modifier.fillMaxSize(),
@@ -170,6 +171,6 @@ class ScanActivity : ComponentActivity() {
         private const val REQUEST_ENABLE_BT = 1001
         private const val PERMISSION_REQUEST_CODE = 1002
         const val DEVICE_PARAM: String = "device"
-        private const val SCAN_PERIOD: Long = 10000
+        private const val SCAN_PERIOD: Long = 5000 // Durée du scan en millisecondes (5 secondes)
     }
 }
