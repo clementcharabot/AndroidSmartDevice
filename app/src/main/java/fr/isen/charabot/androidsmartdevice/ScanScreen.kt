@@ -55,7 +55,7 @@ fun ScanScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = painterResource(id = if (scanInteraction.isScanning) R.drawable.play else R.drawable.pause),
+                painter = painterResource(id = if (scanInteraction.isScanning) R.drawable.pause else R.drawable.play),
                 contentDescription = if (scanInteraction.isScanning) "Pause" else "Lancer le scan",
                 modifier = Modifier.size(24.dp) // Ici, on définit la taille de l'icône
             )
