@@ -20,13 +20,12 @@ import androidx.compose.ui.unit.sp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
         setContent {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
+                verticalArrangement = Arrangement.Center // Modifier la disposition verticale à Centré
             ) {
                 // Titre de l'application (plus gros, centré et bleu clair)
                 Text(
@@ -61,7 +60,6 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Text(text = "COMMENCER", color = Color.White)
                 }
-
             }
         }
     }

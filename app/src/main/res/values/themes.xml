@@ -1,5 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.AndroidSmartDevice" parent="android:Theme.Material.Light" />
+    <color name="header_background_color">#FF0000FF</color>
+    <color name="header_text_color">#FFFFFF</color>
+
+    <style name="Theme.AndroidSmartDevice" parent="android:Theme.Material.Light">
+        <!-- Conservez la couleur de fond de l'action bar comme définie -->
+        <item name="android:actionBarStyle">@style/MyActionBar</item>
+        <item name="android:statusBarColor">@color/header_background_color</item>
+
+    </style>
+
+    <style name="MyActionBar" parent="@android:style/Widget.Material.ActionBar">
+        <item name="android:background">@color/header_background_color</item>
+        <item name="android:titleTextStyle">@style/MyActionBarTitleText</item>
+    </style>
+
+    <style name="MyActionBarTitleText" parent="@android:style/TextAppearance.Material.Widget.ActionBar.Title">
+    <item name="android:textColor">@color/header_text_color</item>
+</style>
+
 </resources>

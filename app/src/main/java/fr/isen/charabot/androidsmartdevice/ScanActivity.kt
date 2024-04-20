@@ -10,17 +10,15 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,7 +51,6 @@ class ScanActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             var scanningState by remember { mutableStateOf(false) }
-            var loading by remember { mutableStateOf(false) }
 
             scanInteraction = ScanInteraction(
                 isScanning = scanningState,
@@ -126,11 +123,6 @@ class ScanActivity : ComponentActivity() {
         val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         bluetoothAdapter?.bluetoothLeScanner?.apply {
             if (enable) {
-                val handler = Handler(Looper.getMainLooper())
-                handler.postDelayed({
-                    scanInteraction.isScanning = false
-                    stopScan(leScanCallback)
-                }, SCAN_PERIOD)
                 scanInteraction.isScanning = true
                 startScan(leScanCallback)
             } else {
@@ -139,6 +131,7 @@ class ScanActivity : ComponentActivity() {
             }
         }
     }
+
 
     private fun getAllPermissionsForBLE(): Array<String> {
         var allPermissions = arrayOf(
@@ -165,12 +158,5 @@ class ScanActivity : ComponentActivity() {
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-    }
-
-    companion object {
-        private const val REQUEST_ENABLE_BT = 1001
-        private const val PERMISSION_REQUEST_CODE = 1002
-        const val DEVICE_PARAM: String = "device"
-        private const val SCAN_PERIOD: Long = 5000 // Durée du scan en millisecondes (5 secondes)
     }
 }

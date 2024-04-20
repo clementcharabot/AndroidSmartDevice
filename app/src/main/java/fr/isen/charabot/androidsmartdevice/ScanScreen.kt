@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.LinearProgressIndicator
@@ -27,9 +28,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Divider
+import androidx.compose.ui.unit.dp
+
 
 
 @SuppressLint("MissingPermission")
@@ -39,42 +47,38 @@ fun ScanScreen(
 ) {
     val context = LocalContext.current
 
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .clickable { scanInteraction.playAction() }, // Correction ici
+            .padding(16.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
-    ){
-
+    ) {
         Row(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(vertical = 16.dp)
                 .clickable { scanInteraction.playAction() },
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
             Image(
                 painter = painterResource(id = if (scanInteraction.isScanning) R.drawable.pause else R.drawable.play),
                 contentDescription = if (scanInteraction.isScanning) "Pause" else "Lancer le scan",
-                modifier = Modifier.size(24.dp) // Ici, on définit la taille de l'icône
+                modifier = Modifier.size(24.dp)
             )
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = if (scanInteraction.isScanning) "Scan en cours" else "Lancer le scan",
-                modifier = Modifier.padding(start = 8.dp)
+                style = MaterialTheme.typography.headlineMedium// Utilisation d'un texte plus grand
             )
         }
 
-        // Barre de progression qui apparaît uniquement lors du scan
         if (scanInteraction.isScanning) {
             LinearProgressIndicator(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
             )
         }
 
-        // Reste de l'interface utilisateur pour afficher la liste des appareils
         if (scanInteraction.isScanning) {
             LazyColumn(
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -83,7 +87,6 @@ fun ScanScreen(
                     DeviceItem(
                         scanResult = scanResult,
                         onItemClick = { device ->
-                            // Lancer DeviceActivity avec les informations du périphérique Bluetooth sélectionné
                             val intent = Intent(context, DeviceActivity::class.java).apply {
                                 putExtra("deviceName", device.name ?: "Unknown Device")
                                 putExtra("deviceAddress", device.address ?: "Unknown Address")
@@ -92,6 +95,7 @@ fun ScanScreen(
                             context.startActivity(intent)
                         }
                     )
+                    Divider(color = Color.LightGray, thickness = 1.dp)
                 }
             }
         }
@@ -102,30 +106,51 @@ fun ScanScreen(
 @Composable
 fun DeviceItem(scanResult: ScanResult, onItemClick: (BluetoothDevice) -> Unit) {
     val context = LocalContext.current
-    var connectingToDevice by remember { mutableStateOf(false) } // Ajout de la variable connectingToDevice
 
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
                 onItemClick(scanResult.device)
-                connectingToDevice = true // Indiquer que la connexion est en cours
             })
-            .padding(vertical = 8.dp)
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RSSIIndicator(scanResult.rssi) // Affichage du signal RSSI sous forme de rond de couleur
+        Spacer(modifier = Modifier.width(8.dp))
+        Column {
+            Text(
+                text = "Name: ${scanResult.device.name ?: "Unknown Device"}",
+                style = MaterialTheme.typography.labelLarge, // Même taille de police que l'adresse MAC
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Address: ${scanResult.device.address ?: "Unknown Address"}",
+                style = MaterialTheme.typography.labelLarge, // Même taille de police que le nom de l'appareil
+            )
+        }
+    }
+}
+
+@Composable
+fun RSSIIndicator(rssi: Int) {
+    // Convertir le signal RSSI en couleur
+    val color = when {
+        rssi <= -70 -> Color.Red
+        rssi <= -50 -> Color.Yellow
+        else -> Color.Green
+    }
+
+    Box(
+        modifier = Modifier
+            .size(36.dp) // Taille plus grande pour le rond de couleur du signal
+            .background(color, shape = CircleShape),
+        contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "Name: ${scanResult.device.name}",
-            style = MaterialTheme.typography.bodyLarge,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Address: ${scanResult.device.address}",
-            style = MaterialTheme.typography.bodySmall,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "RSSI: ${scanResult.rssi}",
-            style = MaterialTheme.typography.bodySmall,
+            text = rssi.toString(), // Afficher le signal RSSI en noir dans le rond de couleur
+            color = Color.Black,
+            style = MaterialTheme.typography.titleLarge
         )
     }
 }

@@ -46,35 +46,27 @@ class DeviceActivity : ComponentActivity() {
         bluetoothDevice = bluetoothAdapter.getRemoteDevice(deviceAddress)
 
         setContent {
-            if (isConnected) {
-                startActivity(Intent(this@DeviceActivity, ActionsActivity::class.java))
-                finish()
-            } else {
-                DeviceScreen(deviceName, deviceAddress, deviceRSSI) {
-                    connectToDevice {
-                        // Une fois connecté, changer l'état de la connexion et rediriger vers ActionsActivity
-                        isConnected = true
-                        startActivity(Intent(this@DeviceActivity, ActionsActivity::class.java))
-                    }
-                }
-            }
+            DeviceScreen(deviceName, deviceAddress, deviceRSSI)
+        }
+
+        if (!isConnected) {
+            connectToDevice()
         }
     }
 
-
-    @SuppressLint("MissingPermission")
-    private fun connectToDevice(onConnected: () -> Unit) {
+    private fun connectToDevice() {
         bluetoothGatt = bluetoothDevice.connectGatt(this, false, object : BluetoothGattCallback() {
             override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
                 when (newState) {
                     BluetoothProfile.STATE_CONNECTED -> {
                         Log.i("BluetoothGatt", "Connected to GATT server.")
-                        // Lorsque la connexion est établie, appeler la fonction onConnected
-                        onConnected()
+                        runOnUiThread {
+                            isConnected = true
+                            startActivity(Intent(this@DeviceActivity, ActionsActivity::class.java))
+                            finish()
+                        }
                     }
-
                     BluetoothProfile.STATE_DISCONNECTED -> {
-                        // Gérer les actions lorsqu'il y a une déconnexion
                         Log.i("BluetoothGatt", "Disconnected from GATT server.")
                         runOnUiThread {
                             Toast.makeText(
@@ -89,13 +81,11 @@ class DeviceActivity : ComponentActivity() {
         })
     }
 
-
     @Composable
     fun DeviceScreen(
         deviceName: String,
         deviceAddress: String,
         deviceRSSI: Int,
-        onConnectClick: () -> Unit
     ) {
         var connecting by remember { mutableStateOf(false) }
 
@@ -106,24 +96,29 @@ class DeviceActivity : ComponentActivity() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Device Name: $deviceName", style = MaterialTheme.typography.headlineMedium)
+            Text(
+                text = "$deviceName",
+                style = MaterialTheme.typography.headlineMedium
+            )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Device Address: $deviceAddress",
+                text = "$deviceAddress",
                 style = MaterialTheme.typography.titleLarge
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Device RSSI: $deviceRSSI", style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "$deviceRSSI",
+                style = MaterialTheme.typography.titleLarge
+            )
+            Spacer(modifier = Modifier.height(32.dp))
             Button(
                 onClick = {
-                    // Lorsque le bouton est cliqué, appeler la fonction pour se connecter
                     connecting = true
-                    onConnectClick()
+                    connectToDevice()
                 },
-                enabled = !connecting // Désactiver le bouton pendant la connexion
+                enabled = !connecting
             ) {
-                Text(if (connecting) "Connexion en cours..." else "Se connecter")
+                Text(if (connecting) "Connexion en cours" else "Connexion")
             }
         }
     }
