@@ -62,7 +62,8 @@ class DeviceActivity : ComponentActivity() {
                         Log.i("BluetoothGatt", "Connected to GATT server.")
                         runOnUiThread {
                             isConnected = true
-                            startActivity(Intent(this@DeviceActivity, ActionsActivity::class.java))
+                            val intent = Intent(this@DeviceActivity, ActionsActivity::class.java)
+                            startActivity(intent) // Démarrez l'activité après avoir ajouté l'extra
                             finish()
                         }
                     }
@@ -80,6 +81,8 @@ class DeviceActivity : ComponentActivity() {
             }
         })
     }
+
+
 
     @Composable
     fun DeviceScreen(
